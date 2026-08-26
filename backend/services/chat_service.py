@@ -167,7 +167,7 @@ class ChatService:
                 provider=(
                     "groq"
                     if request.model.lower()
-                    == "llama-3.1-8b-instant"
+                    =="llama-3.3-70b-versatile"
                     else "ollama"
                 ),
                 model=request.model,
