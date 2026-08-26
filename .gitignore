@@ -1,0 +1,149 @@
+# ============================================================
+# AI Prompt Agent
+# Git Ignore Configuration
+# ============================================================
+#
+# This file prevents local, generated, temporary, and
+# sensitive files from being committed to version control.
+#
+# Source code, configuration templates, documentation,
+# tests, and project files should remain tracked.
+#
+# ============================================================
+
+
+# ------------------------------------------------------------
+# Environment Variables & Secrets
+# ------------------------------------------------------------
+#
+# Never commit local environment files because they may contain
+# API keys, tokens, credentials, or machine-specific settings.
+#
+# .env.example is intentionally tracked because it contains
+# only safe configuration templates.
+#
+
+.env
+.env.*
+!.env.example
+
+
+# ------------------------------------------------------------
+# Python Virtual Environments
+# ------------------------------------------------------------
+#
+# Each developer creates their own virtual environment from
+# requirements.txt.
+#
+
+.venv/
+venv/
+env/
+ENV/
+.env_venv/
+
+
+# ------------------------------------------------------------
+# Python Cache & Compiled Files
+# ------------------------------------------------------------
+
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+
+
+# ------------------------------------------------------------
+# Python Packaging & Build Artifacts
+# ------------------------------------------------------------
+
+build/
+dist/
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+
+
+# ------------------------------------------------------------
+# SQLite / Local Database Files
+# ------------------------------------------------------------
+#
+# SQLite databases are runtime/local data and should not be
+# committed to the source repository.
+#
+
+*.db
+*.sqlite
+*.sqlite3
+
+data/*.db
+data/*.sqlite
+data/*.sqlite3
+
+
+# ------------------------------------------------------------
+# Test & Coverage Artifacts
+# ------------------------------------------------------------
+
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+
+
+# ------------------------------------------------------------
+# Type Checking & Linting Caches
+# ------------------------------------------------------------
+
+.mypy_cache/
+.pyright/
+.ruff_cache/
+
+
+# ------------------------------------------------------------
+# Application Logs
+# ------------------------------------------------------------
+
+*.log
+logs/
+
+
+# ------------------------------------------------------------
+# IDE / Editor Configuration
+# ------------------------------------------------------------
+
+.vscode/
+.idea/
+*.iml
+
+
+# ------------------------------------------------------------
+# Operating System Files
+# ------------------------------------------------------------
+
+.DS_Store
+Thumbs.db
+desktop.ini
+
+
+# ------------------------------------------------------------
+# Temporary / Backup Files
+# ------------------------------------------------------------
+
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+*.bak
+
+
+# ------------------------------------------------------------
+# Local Development Files
+# ------------------------------------------------------------
+
+.local/
+.local.*

@@ -1,10 +1,8 @@
 """
 Reusable prompt engineering engine.
 
-This module is responsible only for transforming user input into
+Responsible only for transforming user input into
 well-defined prompts using different prompt engineering techniques.
-
-It does not call an LLM and does not contain API/database logic.
 """
 
 from dataclasses import dataclass, field
@@ -19,7 +17,7 @@ class PromptTechnique(str, Enum):
     ONE_SHOT = "one-shot"
     FEW_SHOT = "few-shot"
     ROLE_BASED = "role-based"
-    REASONING = "reasoning-oriented"
+    CHAIN_OF_THOUGHT = "chain-of-thought"
     STRUCTURED = "structured"
 
 
@@ -33,11 +31,7 @@ class PromptExample:
 
 @dataclass
 class PromptRequest:
-    """
-    Input required by the prompt engine.
-
-    Different techniques use different fields.
-    """
+    """Input required by the prompt engine."""
 
     task: str
 
@@ -70,8 +64,10 @@ class PromptEngine:
     based on the requested technique.
     """
 
-    def generate(self, request: PromptRequest) -> GeneratedPrompt:
-        """Generate a prompt using the requested technique."""
+    def generate(
+        self,
+        request: PromptRequest,
+    ) -> GeneratedPrompt:
 
         if not request.task.strip():
             raise ValueError("Task cannot be empty.")
@@ -81,7 +77,7 @@ class PromptEngine:
             PromptTechnique.ONE_SHOT: self._build_one_shot,
             PromptTechnique.FEW_SHOT: self._build_few_shot,
             PromptTechnique.ROLE_BASED: self._build_role_based,
-            PromptTechnique.REASONING: self._build_reasoning,
+            PromptTechnique.CHAIN_OF_THOUGHT: self._build_chain_of_thought,
             PromptTechnique.STRUCTURED: self._build_structured,
         }
 
@@ -99,12 +95,18 @@ class PromptEngine:
             prompt=prompt,
         )
 
-    def _build_zero_shot(self, request: PromptRequest) -> str:
+    def _build_zero_shot(
+        self,
+        request: PromptRequest,
+    ) -> str:
         """Build a direct instruction without examples."""
 
         return request.task.strip()
 
-    def _build_one_shot(self, request: PromptRequest) -> str:
+    def _build_one_shot(
+        self,
+        request: PromptRequest,
+    ) -> str:
         """Build a prompt containing exactly one example."""
 
         if len(request.examples) < 1:
@@ -122,7 +124,10 @@ class PromptEngine:
             f"{request.task.strip()}"
         )
 
-    def _build_few_shot(self, request: PromptRequest) -> str:
+    def _build_few_shot(
+        self,
+        request: PromptRequest,
+    ) -> str:
         """Build a prompt containing multiple examples."""
 
         if len(request.examples) < 2:
@@ -132,7 +137,10 @@ class PromptEngine:
 
         example_blocks = []
 
-        for index, example in enumerate(request.examples, start=1):
+        for index, example in enumerate(
+            request.examples,
+            start=1,
+        ):
             example_blocks.append(
                 f"Example {index}:\n"
                 f"Input: {example.input}\n"
@@ -147,7 +155,10 @@ class PromptEngine:
             f"{request.task.strip()}"
         )
 
-    def _build_role_based(self, request: PromptRequest) -> str:
+    def _build_role_based(
+        self,
+        request: PromptRequest,
+    ) -> str:
         """Build a prompt using an explicit expert role."""
 
         if not request.role or not request.role.strip():
@@ -157,26 +168,33 @@ class PromptEngine:
 
         return (
             f"You are {request.role.strip()}.\n\n"
-            f"Task:\n"
+            "Task:\n"
             f"{request.task.strip()}"
         )
 
-    def _build_reasoning(self, request: PromptRequest) -> str:
+    def _build_chain_of_thought(
+        self,
+        request: PromptRequest,
+    ) -> str:
         """
-        Build a reasoning-oriented prompt without requesting
-        hidden chain-of-thought.
+        Build a reasoning-oriented prompt.
+
+        The prompt asks the model to reason carefully before
+        producing the final answer.
         """
 
         return (
-            "Analyze the problem carefully.\n"
-            "Consider the important factors needed to answer accurately.\n"
-            "Provide a concise reasoning summary where useful.\n"
-            "Then provide the final answer.\n\n"
-            f"Task:\n"
+            "Analyze the problem carefully and reason through "
+            "the solution step by step before providing the "
+            "final answer.\n\n"
+            "Task:\n"
             f"{request.task.strip()}"
         )
 
-    def _build_structured(self, request: PromptRequest) -> str:
+    def _build_structured(
+        self,
+        request: PromptRequest,
+    ) -> str:
         """Build a structured prompt from reusable sections."""
 
         sections = []
@@ -213,7 +231,10 @@ class PromptEngine:
         if request.examples:
             example_blocks = []
 
-            for index, example in enumerate(request.examples, start=1):
+            for index, example in enumerate(
+                request.examples,
+                start=1,
+            ):
                 example_blocks.append(
                     f"Example {index}:\n"
                     f"Input: {example.input}\n"
