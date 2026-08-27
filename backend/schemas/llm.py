@@ -11,6 +11,12 @@ class LLMMessage(BaseModel):
     role: str = Field(..., min_length=1)
     content: str = Field(default="")
 
+    # Used when assistant requests a tool
+    tool_calls: Optional[list[dict[str, Any]]] = None
+
+    # Required when role="tool"
+    tool_call_id: Optional[str] = None
+
 
 class LLMTool(BaseModel):
     type: str = "function"
@@ -20,6 +26,7 @@ class LLMTool(BaseModel):
 class LLMToolCall(BaseModel):
     name: str
     arguments: dict[str, Any] = Field(default_factory=dict)
+    tool_call_id: str
 
 
 class LLMRequest(BaseModel):

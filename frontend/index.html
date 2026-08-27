@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,7 +12,10 @@
 
 <div class="app">
 
-    <!-- SIDEBAR -->
+    <!-- ============================================================
+         SIDEBAR
+    ============================================================= -->
+
     <aside class="sidebar">
 
         <div class="brand">
@@ -19,279 +23,445 @@
             <span>Prompt Engineering Assistant</span>
         </div>
 
-        <button id="newChatButton" class="new-chat">
+        <button
+            id="newChatButton"
+            class="new-chat"
+        >
             + New Chat
         </button>
 
-        <button id="databaseButton" class="database-button">
-            ?? Database
+        <button
+            id="databaseButton"
+            class="database-button"
+        >
+            🗄 Database
+        </button>
+
+        <button
+            id="comparisonButton"
+            class="database-button"
+        >
+            ⚖ Prompt Comparison
         </button>
 
         <div class="sidebar-title">
             Conversations
         </div>
 
-        <div id="conversationList" class="conversation-list"></div>
+        <div
+            id="conversationList"
+            class="conversation-list"
+        ></div>
 
     </aside>
 
 
-    <!-- MAIN -->
+    <!-- ============================================================
+         MAIN
+    ============================================================= -->
+
     <main class="main">
 
-        <!-- TOP BAR -->
-        <header class="topbar">
+        <!-- ========================================================
+             CHAT VIEW
+        ========================================================= -->
 
-            <div>
-                <h2>AI Assistant</h2>
+        <div id="chatView">
 
-                <span class="status">
-                    Local Mistral
-                </span>
-            </div>
+            <!-- TOP BAR -->
 
-            <div class="controls">
+            <header class="topbar">
 
-                <!-- MODE -->
-                <select id="mode">
-                    <option value="agent">AI Agent</option>
-                    <option value="chat">Normal Chat</option>
-                </select>
+                <div>
 
-                <!-- MODEL -->
-                <select id="model">
-                    <option value="mistral">Mistral</option>
-                    <option value="openai/gpt-oss-20b">Llama 3.3 70B (Groq)</option>
-                </select>
+                    <h2 id="pageTitle">
+                        AI Assistant
+                    </h2>
 
-                <!-- TECHNIQUE -->
-                <select id="technique">
-                    <option value="zero-shot">Zero-shot</option>
-                    <option value="one-shot">One-shot</option>
-                    <option value="few-shot">Few-shot</option>
-                    <option value="role-based">Role-based</option>
-                    <option value="chain-of-thought">Chain-of-Thought</option>
-                    <option value="structured">Structured</option>
-                </select>
-
-            </div>
-
-        </header>
-
-
-        <!-- MODEL PARAMETERS -->
-        <section id="modelParameters" class="model-parameters">
-
-            <div class="parameter-header">
-                <h3>Model Parameters</h3>
-                <span>Control how the LLM generates responses</span>
-            </div>
-
-            <div class="parameter-grid">
-
-                <!-- TEMPERATURE -->
-                <div class="parameter-field">
-
-                    <label for="temperature">
-                        Temperature
-                        <span id="temperatureValue">0.7</span>
-                    </label>
-
-                    <input
-                        id="temperature"
-                        type="range"
-                        min="0"
-                        max="2"
-                        step="0.1"
-                        value="0.7"
-                    >
-
-                    <small>
-                        Controls randomness. Lower = more focused.
-                    </small>
+                    <span class="status">
+                        Ollama / Groq
+                    </span>
 
                 </div>
 
 
-                <!-- TOP P -->
-                <div class="parameter-field">
+                <div class="controls">
 
-                    <label for="topP">
-                        Top-P
-                        <span id="topPValue">0.9</span>
-                    </label>
+                    <!-- MODE -->
 
-                    <input
-                        id="topP"
-                        type="range"
-                        min="0.1"
-                        max="1"
-                        step="0.05"
-                        value="0.9"
-                    >
+                    <select id="mode">
 
-                    <small>
-                        Controls the token probability range.
-                    </small>
-
-                </div>
-
-
-                <!-- MAX TOKENS -->
-                <div class="parameter-field">
-
-                    <label for="maxTokens">
-                        Max Tokens
-                        <span id="maxTokensValue">512</span>
-                    </label>
-
-                    <input
-                        id="maxTokens"
-                        type="range"
-                        min="64"
-                        max="8192"
-                        step="64"
-                        value="512"
-                    >
-
-                    <small>
-                        Maximum response length.
-                    </small>
-
-                </div>
-
-
-                <!-- RESPONSE FORMAT -->
-                <div class="parameter-field">
-
-                    <label for="responseFormat">
-                        Response Format
-                    </label>
-
-                    <select id="responseFormat">
-
-                        <option value="text">
-                            Text
+                        <option value="agent">
+                            AI Agent
                         </option>
 
-                        <option value="json">
-                            JSON
+                        <option value="chat">
+                            Normal Chat
                         </option>
 
                     </select>
 
-                    <small>
-                        Choose normal text or structured JSON output.
-                    </small>
+
+                    <!-- MODEL -->
+
+                    <select id="model">
+
+                        <option value="mistral">
+                            Ollama - Mistral
+                        </option>
+
+                        <option value="openai/gpt-oss-20b">
+                            Groq Cloud - GPT OSS 20B
+                        </option>
+
+                    </select>
+
+
+                    <!-- TECHNIQUE -->
+
+                    <select id="technique">
+
+                        <option value="zero-shot">
+                            Zero-shot
+                        </option>
+
+                        <option value="one-shot">
+                            One-shot
+                        </option>
+
+                        <option value="few-shot">
+                            Few-shot
+                        </option>
+
+                        <option value="role-based">
+                            Role-based
+                        </option>
+
+                        <option value="chain-of-thought">
+                            Chain-of-Thought
+                        </option>
+
+                        <option value="structured">
+                            Structured
+                        </option>
+
+                    </select>
 
                 </div>
 
-            </div>
-
-        </section>
+            </header>
 
 
-        <!-- PROMPT OPTIONS -->
-        <section
-            id="promptOptions"
-            class="prompt-options"
-        >
+            <!-- ====================================================
+                 MODEL PARAMETERS
+            ===================================================== -->
 
-            <!-- ROLE -->
-            <div
-                id="roleField"
-                class="prompt-field hidden"
+            <section
+                id="modelParameters"
+                class="model-parameters"
             >
 
-                <label for="role">
-                    Role
-                </label>
+                <div class="parameter-header">
 
-                <input
-                    id="role"
-                    type="text"
-                    placeholder="Example: You are an expert Python developer"
+                    <h3>
+                        Model Parameters
+                    </h3>
+
+                    <span>
+                        Control how the LLM generates responses
+                    </span>
+
+                </div>
+
+
+                <div class="parameter-grid">
+
+                    <!-- TEMPERATURE -->
+
+                    <div class="parameter-field">
+
+                        <label for="temperature">
+
+                            Temperature
+
+                            <span id="temperatureValue">
+                                0.7
+                            </span>
+
+                        </label>
+
+                        <input
+                            id="temperature"
+                            type="range"
+                            min="0"
+                            max="2"
+                            step="0.1"
+                            value="0.7"
+                        >
+
+                        <small>
+                            Controls randomness. Lower = more focused.
+                        </small>
+
+                    </div>
+
+
+                    <!-- TOP P -->
+
+                    <div class="parameter-field">
+
+                        <label for="topP">
+
+                            Top-P
+
+                            <span id="topPValue">
+                                0.9
+                            </span>
+
+                        </label>
+
+                        <input
+                            id="topP"
+                            type="range"
+                            min="0.1"
+                            max="1"
+                            step="0.05"
+                            value="0.9"
+                        >
+
+                        <small>
+                            Controls the token probability range.
+                        </small>
+
+                    </div>
+
+
+                    <!-- MAX TOKENS -->
+
+                    <div class="parameter-field">
+
+                        <label for="maxTokens">
+
+                            Max Tokens
+
+                            <span id="maxTokensValue">
+                                512
+                            </span>
+
+                        </label>
+
+                        <input
+                            id="maxTokens"
+                            type="range"
+                            min="64"
+                            max="8192"
+                            step="64"
+                            value="512"
+                        >
+
+                        <small>
+                            Maximum response length.
+                        </small>
+
+                    </div>
+
+
+                    <!-- RESPONSE FORMAT -->
+
+                    <div class="parameter-field">
+
+                        <label for="responseFormat">
+                            Response Format
+                        </label>
+
+                        <select id="responseFormat">
+
+                            <option value="text">
+                                Text
+                            </option>
+
+                            <option value="json">
+                                JSON
+                            </option>
+
+                        </select>
+
+                        <small>
+                            Choose normal text or structured JSON output.
+                        </small>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- ====================================================
+                 PROMPT OPTIONS
+            ===================================================== -->
+
+            <section
+                id="promptOptions"
+                class="prompt-options"
+            >
+
+                <!-- ROLE -->
+
+                <div
+                    id="roleField"
+                    class="prompt-field hidden"
                 >
 
-            </div>
+                    <label for="role">
+                        Role
+                    </label>
+
+                    <input
+                        id="role"
+                        type="text"
+                        placeholder="Example: You are an expert Python developer"
+                    >
+
+                </div>
 
 
-            <!-- CONTEXT -->
-            <div
-                id="contextField"
-                class="prompt-field hidden"
-            >
+                <!-- CONTEXT -->
 
-                <label for="context">
-                    Context
-                </label>
-
-                <textarea
-                    id="context"
-                    placeholder="Provide relevant background information..."
-                ></textarea>
-
-            </div>
-
-
-            <!-- CONSTRAINTS -->
-            <div
-                id="constraintsField"
-                class="prompt-field hidden"
-            >
-
-                <label for="constraints">
-                    Constraints
-                </label>
-
-                <textarea
-                    id="constraints"
-                    placeholder="Example: Keep the answer concise..."
-                ></textarea>
-
-            </div>
-
-
-            <!-- EXPECTED OUTPUT -->
-            <div
-                id="expectedOutputField"
-                class="prompt-field hidden"
-            >
-
-                <label for="expectedOutput">
-                    Expected Output
-                </label>
-
-                <input
-                    id="expectedOutput"
-                    type="text"
-                    placeholder="Example: Return a JSON object"
+                <div
+                    id="contextField"
+                    class="prompt-field hidden"
                 >
 
-            </div>
+                    <label for="context">
+                        Context
+                    </label>
+
+                    <textarea
+                        id="context"
+                        placeholder="Provide relevant background information..."
+                    ></textarea>
+
+                </div>
 
 
-            <!-- EXAMPLES -->
-            <div
-                id="examplesField"
-                class="prompt-field hidden"
+                <!-- CONSTRAINTS -->
+
+                <div
+                    id="constraintsField"
+                    class="prompt-field hidden"
+                >
+
+                    <label for="constraints">
+                        Constraints
+                    </label>
+
+                    <textarea
+                        id="constraints"
+                        placeholder="Example: Keep the answer concise..."
+                    ></textarea>
+
+                </div>
+
+
+                <!-- EXPECTED OUTPUT -->
+
+                <div
+                    id="expectedOutputField"
+                    class="prompt-field hidden"
+                >
+
+                    <label for="expectedOutput">
+                        Expected Output
+                    </label>
+
+                    <input
+                        id="expectedOutput"
+                        type="text"
+                        placeholder="Example: Return a JSON object"
+                    >
+
+                </div>
+
+
+                <!-- EXAMPLES -->
+
+                <div
+                    id="examplesField"
+                    class="prompt-field hidden"
+                >
+
+                    <label for="examples">
+                        Examples
+                    </label>
+
+                    <textarea
+                        id="examples"
+                        placeholder="Input: ...&#10;Output: ...&#10;&#10;Input: ...&#10;Output: ..."
+                    ></textarea>
+
+                </div>
+
+            </section>
+
+
+            <!-- ====================================================
+                 MESSAGES
+            ===================================================== -->
+
+            <section
+                id="messages"
+                class="messages"
             >
 
-                <label for="examples">
-                    Examples
-                </label>
+                <div class="welcome">
 
-                <textarea
-                    id="examples"
-                    placeholder="Input: ...&#10;Output: ...&#10;&#10;Input: ...&#10;Output: ..."
-                ></textarea>
+                    <h2>
+                        How can I help?
+                    </h2>
 
-            </div>
+                    <p>
+                        Create, improve, compare prompts,
+                        use tools, or ask a normal question.
+                    </p>
 
-        </section>
+                </div>
+
+            </section>
 
 
-        <!-- DATABASE VIEW -->
+            <!-- ====================================================
+                 INPUT
+            ===================================================== -->
+
+            <form
+                id="chatForm"
+                class="input-area"
+            >
+
+                <input
+                    id="message"
+                    type="text"
+                    placeholder="Ask something..."
+                    autocomplete="off"
+                >
+
+                <button
+                    id="sendButton"
+                    type="submit"
+                >
+                    Send
+                </button>
+
+            </form>
+
+        </div>
+
+
+        <!-- ========================================================
+             DATABASE VIEW
+        ========================================================= -->
+
         <section
             id="databaseView"
             class="database-view hidden"
@@ -300,11 +470,15 @@
             <div class="database-header">
 
                 <div>
-                    <h2>SQLite Database</h2>
+
+                    <h2>
+                        SQLite Database
+                    </h2>
 
                     <p>
                         View conversations and messages stored by the application.
                     </p>
+
                 </div>
 
                 <button
@@ -356,80 +530,45 @@
 
         </section>
 
-
-        <!-- MESSAGES -->
-        <section
-            id="messages"
-            class="messages"
-        >
-
-            <div class="welcome">
-
-                <h2>
-                    How can I help?
-                </h2>
-
-                <p>
-                    Create, improve, compare prompts,
-                    use tools, or ask a normal question.
-                </p>
-
-            </div>
-
-        </section>
-
-
-        <!-- INPUT -->
-        <form
-            id="chatForm"
-            class="input-area"
-        >
-
-            <input
-                id="message"
-                type="text"
-                placeholder="Ask something..."
-                autocomplete="off"
-            >
-
-            <button
-                id="sendButton"
-                type="submit"
-            >
-                Send
-            </button>
-
-        </form>
-
     </main>
 
 </div>
 
 
-<script src="/frontend/app.js"></script>
-
-</body>
-</html>
-
 <!-- ============================================================
      PROMPT COMPARISON
 ============================================================ -->
 
-<section id="comparisonView" class="comparison-view hidden">
+<section
+    id="comparisonView"
+    class="comparison-view hidden"
+>
 
     <div class="comparison-header">
+
         <div>
-            <h2>Prompt Comparison</h2>
-            <p>Compare different prompting techniques on the same task.</p>
+
+            <h2>
+                Prompt Comparison
+            </h2>
+
+            <p>
+                Compare different prompting techniques on the same task.
+            </p>
+
         </div>
+
 
         <button
             id="backToChat"
             type="button"
-            class="refresh-button">
-            ? Back to Chat
+            class="refresh-button"
+        >
+            ← Back to Chat
         </button>
+
     </div>
+
 
     <div class="comparison-form">
 
@@ -452,14 +591,31 @@
                 </label>
 
                 <select id="comparisonTechnique1">
-                    <option value="zero-shot">Zero-shot</option>
-                    <option value="one-shot">One-shot</option>
-                    <option value="few-shot">Few-shot</option>
-                    <option value="role-based">Role-based</option>
+
+                    <option value="zero-shot">
+                        Zero-shot
+                    </option>
+
+                    <option value="one-shot">
+                        One-shot
+                    </option>
+
+                    <option value="few-shot">
+                        Few-shot
+                    </option>
+
+                    <option value="role-based">
+                        Role-based
+                    </option>
+
                     <option value="chain-of-thought">
                         Chain-of-Thought
                     </option>
-                    <option value="structured">Structured</option>
+
+                    <option value="structured">
+                        Structured
+                    </option>
+
                 </select>
 
             </div>
@@ -472,14 +628,34 @@
                 </label>
 
                 <select id="comparisonTechnique2">
-                    <option value="zero-shot">Zero-shot</option>
-                    <option value="one-shot">One-shot</option>
-                    <option value="few-shot" selected>Few-shot</option>
-                    <option value="role-based">Role-based</option>
+
+                    <option value="zero-shot">
+                        Zero-shot
+                    </option>
+
+                    <option value="one-shot">
+                        One-shot
+                    </option>
+
+                    <option
+                        value="few-shot"
+                        selected
+                    >
+                        Few-shot
+                    </option>
+
+                    <option value="role-based">
+                        Role-based
+                    </option>
+
                     <option value="chain-of-thought">
                         Chain-of-Thought
                     </option>
-                    <option value="structured">Structured</option>
+
+                    <option value="structured">
+                        Structured
+                    </option>
+
                 </select>
 
             </div>
@@ -490,6 +666,7 @@
         <div class="comparison-options">
 
             <div>
+
                 <label for="comparisonRole">
                     Role
                 </label>
@@ -499,10 +676,12 @@
                     type="text"
                     placeholder="Example: Expert Python tutor"
                 >
+
             </div>
 
 
             <div>
+
                 <label for="comparisonExpected">
                     Expected Output
                 </label>
@@ -512,6 +691,7 @@
                     type="text"
                     placeholder="Example: Clear explanation with examples"
                 >
+
             </div>
 
         </div>
@@ -520,6 +700,7 @@
         <div class="comparison-options">
 
             <div>
+
                 <label for="comparisonContext">
                     Context
                 </label>
@@ -528,10 +709,12 @@
                     id="comparisonContext"
                     placeholder="Optional background context..."
                 ></textarea>
+
             </div>
 
 
             <div>
+
                 <label for="comparisonConstraints">
                     Constraints
                 </label>
@@ -540,6 +723,7 @@
                     id="comparisonConstraints"
                     placeholder="Optional constraints..."
                 ></textarea>
+
             </div>
 
         </div>
@@ -548,7 +732,8 @@
         <button
             id="compareButton"
             type="button"
-            class="send-button">
+            class="send-button"
+        >
             Compare Prompts
         </button>
 
@@ -557,17 +742,27 @@
 
     <div
         id="comparisonLoading"
-        class="database-loading hidden">
-        Comparing prompts with Mistral...
+        class="database-loading hidden"
+    >
+        Comparing prompts...
     </div>
 
 
     <div
         id="comparisonResults"
-        class="comparison-results">
+        class="comparison-results"
+    >
     </div>
 
 </section>
 
 
+<!-- ============================================================
+     JAVASCRIPT
+============================================================ -->
 
+<script src="/frontend/app.js"></script>
+
+</body>
+
+</html>

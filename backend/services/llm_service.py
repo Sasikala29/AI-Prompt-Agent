@@ -41,8 +41,8 @@ class LLMService:
         raise ValueError(
             f"Unsupported LLM model '{model}'. "
             f"Supported models: "
-            f"{settings.ollama_model}, "
-            f"{settings.groq_model}"
+            f"{settings.groq_model}, "
+            f"{settings.ollama_model}"
         )
 
     def get_provider(

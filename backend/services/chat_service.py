@@ -1,5 +1,10 @@
 from sqlalchemy.orm import Session
 
+from backend.prompts.engine import (
+    PromptEngine,
+    PromptExample,
+    PromptRequest,
+)
 from backend.repositories.conversation_repository import ConversationRepository
 from backend.schemas.chat import (
     ChatMessageRequest,
@@ -23,51 +28,51 @@ class ChatService:
         self.repository = ConversationRepository(db)
         self.llm_service = llm_service or LLMService()
         self.memory_service = MemoryService()
+        self.prompt_engine = PromptEngine()
 
-    async def send_message(
+    def _build_prompt(
         self,
         request: ChatMessageRequest,
-    ) -> ChatMessageResponse:
-
-        conversation = None
-
-        if request.conversation_id is not None:
-            conversation = self.repository.get_conversation(
-                request.conversation_id,
-                request.user_id,
+    ) -> str:
+        examples = [
+            PromptExample(
+                input=example.input,
+                output=example.output,
             )
+            for example in request.examples
+        ]
 
-            if conversation is None:
-                raise ValueError(
-                    f"Conversation {request.conversation_id} was not found."
-                )
-
-        if conversation is None:
-            title = self._create_title(request.message)
-
-            conversation = self.repository.create_conversation(
-                user_id=request.user_id,
-                title=title,
-                provider="ollama",
-                model=request.model,
-            )
-
-        previous_messages = list(conversation.messages)
-
-        user_message = self.repository.add_message(
-            conversation=conversation,
-            role="user",
-            content=request.message,
-            model=request.model,
-            temperature=request.temperature,
-            top_p=request.top_p,
-            max_tokens=request.max_tokens,
-            response_format=request.response_format,
+        prompt_request = PromptRequest(
+            task=request.message,
+            technique=request.prompt_technique,
+            role=request.role,
+            examples=examples,
+            context=request.context,
+            constraints=request.constraints,
+            expected_output=request.expected_output,
         )
 
-        memory = self.memory_service.get_memory(request.user_id)
+        generated_prompt = self.prompt_engine.generate(
+            prompt_request
+        )
+
+        return generated_prompt.prompt
+
+    def _build_llm_messages(
+        self,
+        request: ChatMessageRequest,
+        previous_messages,
+    ) -> list[LLMMessage]:
+
+        memory = self.memory_service.get_memory(
+            request.user_id
+        )
 
         llm_messages: list[LLMMessage] = []
+
+        # --------------------------------------------------------
+        # USER MEMORY
+        # --------------------------------------------------------
 
         if memory:
             memory_text = "\n".join(
@@ -86,6 +91,10 @@ class ChatService:
                 )
             )
 
+        # --------------------------------------------------------
+        # PREVIOUS CONVERSATION HISTORY
+        # --------------------------------------------------------
+
         llm_messages.extend(
             LLMMessage(
                 role=message.role,
@@ -94,12 +103,82 @@ class ChatService:
             for message in previous_messages
         )
 
+        # --------------------------------------------------------
+        # CURRENT USER REQUEST
+        # --------------------------------------------------------
+
         llm_messages.append(
             LLMMessage(
                 role="user",
-                content=request.message,
+                content=self._build_prompt(request),
             )
         )
+
+        return llm_messages
+
+    async def send_message(
+        self,
+        request: ChatMessageRequest,
+    ) -> ChatMessageResponse:
+
+        conversation = None
+
+        # --------------------------------------------------------
+        # FIND EXISTING CONVERSATION
+        # --------------------------------------------------------
+
+        if request.conversation_id is not None:
+            conversation = self.repository.get_conversation(
+                request.conversation_id,
+                request.user_id,
+            )
+
+            if conversation is None:
+                raise ValueError(
+                    f"Conversation {request.conversation_id} was not found."
+                )
+
+        # --------------------------------------------------------
+        # CREATE NEW CONVERSATION
+        # --------------------------------------------------------
+
+        if conversation is None:
+            title = self._create_title(
+                request.message
+            )
+
+            conversation = self.repository.create_conversation(
+                user_id=request.user_id,
+                title=title,
+                provider="ollama",
+                model=request.model,
+            )
+
+        # --------------------------------------------------------
+        # GET ONLY PREVIOUS MESSAGES
+        #
+        # IMPORTANT:
+        # Do this before saving the current user message.
+        # The current request is added separately by
+        # _build_llm_messages().
+        # --------------------------------------------------------
+
+        previous_messages = list(
+            conversation.messages
+        )
+
+        # --------------------------------------------------------
+        # BUILD LLM CONTEXT
+        # --------------------------------------------------------
+
+        llm_messages = self._build_llm_messages(
+            request,
+            previous_messages,
+        )
+
+        # --------------------------------------------------------
+        # BUILD LLM REQUEST
+        # --------------------------------------------------------
 
         llm_request = LLMRequest(
             model=request.model,
@@ -111,18 +190,53 @@ class ChatService:
             stream=False,
         )
 
-        response = await self.llm_service.generate(llm_request)
+        # --------------------------------------------------------
+        # CALL LLM
+        # --------------------------------------------------------
+
+        response = await self.llm_service.generate(
+            llm_request
+        )
+
+        # --------------------------------------------------------
+        # SAVE USER MESSAGE
+        #
+        # Save it only after the LLM context has been built.
+        # This prevents the current message from being included
+        # twice in the LLM request.
+        # --------------------------------------------------------
+
+        user_message = self.repository.add_message(
+            conversation=conversation,
+            role="user",
+            content=request.message,
+            prompt_technique=request.prompt_technique.value,
+            model=request.model,
+            temperature=request.temperature,
+            top_p=request.top_p,
+            max_tokens=request.max_tokens,
+            response_format=request.response_format,
+        )
+
+        # --------------------------------------------------------
+        # SAVE ASSISTANT RESPONSE
+        # --------------------------------------------------------
 
         assistant_message = self.repository.add_message(
             conversation=conversation,
             role="assistant",
             content=response.content,
+            prompt_technique=request.prompt_technique.value,
             model=response.model,
             temperature=request.temperature,
             top_p=request.top_p,
             max_tokens=request.max_tokens,
             response_format=request.response_format,
         )
+
+        # --------------------------------------------------------
+        # RETURN RESPONSE
+        # --------------------------------------------------------
 
         return ChatMessageResponse(
             conversation_id=conversation.id,
@@ -138,14 +252,12 @@ class ChatService:
         self,
         request: ChatMessageRequest,
     ):
-        """
-        Stream an LLM response while preserving conversation history.
-
-        The complete response is persisted to SQLite after streaming
-        finishes successfully.
-        """
 
         conversation = None
+
+        # --------------------------------------------------------
+        # FIND EXISTING CONVERSATION
+        # --------------------------------------------------------
 
         if request.conversation_id is not None:
             conversation = self.repository.get_conversation(
@@ -158,69 +270,45 @@ class ChatService:
                     f"Conversation {request.conversation_id} was not found."
                 )
 
+        # --------------------------------------------------------
+        # CREATE NEW CONVERSATION
+        # --------------------------------------------------------
+
         if conversation is None:
-            title = self._create_title(request.message)
+            title = self._create_title(
+                request.message
+            )
 
             conversation = self.repository.create_conversation(
                 user_id=request.user_id,
                 title=title,
-                provider=(
-                    "groq"
-                    if request.model.lower()
-                    =="llama-3.3-70b-versatile"
-                    else "ollama"
-                ),
+                provider="ollama",
                 model=request.model,
             )
 
-        previous_messages = list(conversation.messages)
+        # --------------------------------------------------------
+        # GET PREVIOUS MESSAGES
+        #
+        # IMPORTANT:
+        # Current user message is NOT saved yet.
+        # --------------------------------------------------------
 
-        user_message = self.repository.add_message(
-            conversation=conversation,
-            role="user",
-            content=request.message,
-            model=request.model,
-            temperature=request.temperature,
-            top_p=request.top_p,
-            max_tokens=request.max_tokens,
-            response_format=request.response_format,
+        previous_messages = list(
+            conversation.messages
         )
 
-        memory = self.memory_service.get_memory(request.user_id)
+        # --------------------------------------------------------
+        # BUILD LLM CONTEXT
+        # --------------------------------------------------------
 
-        llm_messages: list[LLMMessage] = []
-
-        if memory:
-            memory_text = "\n".join(
-                f"{key}: {value}"
-                for key, value in memory.items()
-            )
-
-            llm_messages.append(
-                LLMMessage(
-                    role="system",
-                    content=(
-                        "User memory. Use this information when "
-                        "relevant and do not invent additional facts.\n"
-                        f"{memory_text}"
-                    ),
-                )
-            )
-
-        llm_messages.extend(
-            LLMMessage(
-                role=message.role,
-                content=message.content,
-            )
-            for message in previous_messages
+        llm_messages = self._build_llm_messages(
+            request,
+            previous_messages,
         )
 
-        llm_messages.append(
-            LLMMessage(
-                role="user",
-                content=request.message,
-            )
-        )
+        # --------------------------------------------------------
+        # BUILD STREAMING LLM REQUEST
+        # --------------------------------------------------------
 
         llm_request = LLMRequest(
             model=request.model,
@@ -232,18 +320,42 @@ class ChatService:
             stream=True,
         )
 
+        # --------------------------------------------------------
+        # STREAM RESPONSE
+        # --------------------------------------------------------
+
         chunks: list[str] = []
 
-        async for chunk in self.llm_service.stream(llm_request):
-            chunks.append(chunk)
-            yield chunk
+        try:
+            async for chunk in self.llm_service.stream(
+                llm_request
+            ):
+                chunks.append(chunk)
+                yield chunk
+
+        except Exception:
+            # Do not save an incomplete assistant response
+            # when the LLM request fails during streaming.
+            raise
+
+        # --------------------------------------------------------
+        # COMPLETE RESPONSE
+        # --------------------------------------------------------
 
         complete_response = "".join(chunks)
 
+        # --------------------------------------------------------
+        # SAVE USER MESSAGE
+        #
+        # Save after the LLM context was built so the current
+        # question does not get duplicated in the request.
+        # --------------------------------------------------------
+
         self.repository.add_message(
             conversation=conversation,
-            role="assistant",
-            content=complete_response,
+            role="user",
+            content=request.message,
+            prompt_technique=request.prompt_technique.value,
             model=request.model,
             temperature=request.temperature,
             top_p=request.top_p,
@@ -251,13 +363,30 @@ class ChatService:
             response_format=request.response_format,
         )
 
+        # --------------------------------------------------------
+        # SAVE ASSISTANT RESPONSE
+        # --------------------------------------------------------
+
+        self.repository.add_message(
+            conversation=conversation,
+            role="assistant",
+            content=complete_response,
+            prompt_technique=request.prompt_technique.value,
+            model=request.model,
+            temperature=request.temperature,
+            top_p=request.top_p,
+            max_tokens=request.max_tokens,
+            response_format=request.response_format,
+        )
 
     def list_conversations(
         self,
         user_id: int,
     ) -> list[ConversationSummary]:
 
-        conversations = self.repository.list_conversations(user_id)
+        conversations = self.repository.list_conversations(
+            user_id
+        )
 
         return [
             ConversationSummary(
@@ -321,8 +450,13 @@ class ChatService:
         )
 
     @staticmethod
-    def _create_title(message: str) -> str:
-        title = " ".join(message.strip().split())
+    def _create_title(
+        message: str,
+    ) -> str:
+
+        title = " ".join(
+            message.strip().split()
+        )
 
         if len(title) > 60:
             return f"{title[:57]}..."

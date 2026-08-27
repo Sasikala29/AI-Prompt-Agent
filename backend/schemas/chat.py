@@ -2,6 +2,13 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field
 
+from backend.prompts.engine import PromptTechnique
+
+
+class PromptExampleRequest(BaseModel):
+    input: str
+    output: str
+
 
 class ChatMessageRequest(BaseModel):
     conversation_id: int | None = Field(
@@ -48,6 +55,22 @@ class ChatMessageRequest(BaseModel):
         default="text",
         pattern="^(text|json)$",
     )
+
+    prompt_technique: PromptTechnique = Field(
+        default=PromptTechnique.ZERO_SHOT,
+    )
+
+    role: str | None = None
+
+    examples: list[PromptExampleRequest] = Field(
+        default_factory=list,
+    )
+
+    context: str | None = None
+
+    constraints: str | None = None
+
+    expected_output: str | None = None
 
 
 class ChatMessageResponse(BaseModel):

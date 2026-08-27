@@ -1,10 +1,7 @@
 """
 Application configuration for the AI Prompt Agent.
 
-This module provides a single, validated configuration object
-for the entire application.
-
-Configuration values are loaded from environment variables
+Configuration is loaded from environment variables
 and the local .env file through Pydantic Settings.
 """
 
@@ -17,9 +14,6 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     """
     Central application configuration.
-
-    Values are loaded from environment variables and, during
-    local development, from the project's .env file.
     """
 
     # --------------------------------------------------------
@@ -66,7 +60,38 @@ class Settings(BaseSettings):
 
     ollama_model: str = Field(
         default="mistral",
-        description="Default Ollama model.",
+        description="Default local Ollama model.",
+    )
+
+    ollama_timeout_seconds: int = Field(
+        default=120,
+        gt=0,
+        description="Maximum time allowed for Ollama requests.",
+    )
+
+    # --------------------------------------------------------
+    # Groq Cloud Configuration
+    # --------------------------------------------------------
+
+    groq_api_key: str = Field(
+        default="",
+        description="Groq Cloud API key.",
+    )
+
+    groq_model: str = Field(
+        default="openai/gpt-oss-20b",
+        description="Default Groq Cloud model.",
+    )
+
+    groq_base_url: str = Field(
+        default="https://api.groq.com/openai/v1",
+        description="Groq OpenAI-compatible API base URL.",
+    )
+
+    groq_timeout_seconds: int = Field(
+        default=60,
+        gt=0,
+        description="Maximum time allowed for Groq requests.",
     )
 
     # --------------------------------------------------------
@@ -94,33 +119,6 @@ class Settings(BaseSettings):
     )
 
     # --------------------------------------------------------
-    # Ollama Request Configuration
-    # --------------------------------------------------------
-    # --------------------------------------------------------
-    # Groq Configuration
-    # --------------------------------------------------------
-
-    groq_api_key: str = Field(
-        default="",
-        description="Groq API key.",
-    )
-
-    groq_model: str = Field(
-        default="llama-3.3-70b-versatile",
-        description="Default Groq model.",
-    )
-
-    # --------------------------------------------------------
-    # Ollama Request Configuration
-    # --------------------------------------------------------
-
-    ollama_timeout_seconds: int = Field(
-        default=120,
-        gt=0,
-        description="Maximum time allowed for an Ollama request.",
-    )
-
-    # --------------------------------------------------------
     # Pydantic Settings Configuration
     # --------------------------------------------------------
 
@@ -135,10 +133,7 @@ class Settings(BaseSettings):
 @lru_cache
 def get_settings() -> Settings:
     """
-    Return the application's cached Settings instance.
-
-    Caching ensures that the application does not repeatedly
-    reload and parse the environment configuration.
+    Return the cached application settings.
     """
 
     return Settings()

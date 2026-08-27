@@ -50,7 +50,7 @@ class PromptRequest:
 
 @dataclass
 class GeneratedPrompt:
-    """Normalized result returned by the prompt engine."""
+    """Normalized prompt returned by the prompt engine."""
 
     technique: PromptTechnique
     prompt: str
@@ -60,17 +60,41 @@ class PromptEngine:
     """
     Central prompt-generation service.
 
-    The engine selects the appropriate prompt-building strategy
-    based on the requested technique.
+    Supported techniques:
+    - Zero-shot
+    - One-shot
+    - Few-shot
+    - Role-based
+    - Chain-of-thought
+    - Structured prompting
     """
+
+    RESPONSE_STYLE = """
+RESPONSE STYLE RULES:
+
+- Answer the user's actual request directly.
+- Respond naturally like a helpful AI assistant.
+- Keep the response clear, concise, and readable.
+- Use short paragraphs when appropriate.
+- Use headings only when they improve readability.
+- Use bullet points for lists.
+- Use numbered lists for sequential steps.
+- Use code blocks when showing programming code.
+- Do NOT use Markdown tables unless explicitly requested.
+- Do NOT unnecessarily convert explanations into tables.
+- Avoid unnecessary repetition.
+- Follow the requested output format exactly.
+""".strip()
 
     def generate(
         self,
         request: PromptRequest,
     ) -> GeneratedPrompt:
+        """
+        Generate a prompt using the requested technique.
+        """
 
-        if not request.task.strip():
-            raise ValueError("Task cannot be empty.")
+        self._validate_request(request)
 
         builders = {
             PromptTechnique.ZERO_SHOT: self._build_zero_shot,
@@ -95,155 +119,403 @@ class PromptEngine:
             prompt=prompt,
         )
 
+    # ------------------------------------------------------------------
+    # VALIDATION
+    # ------------------------------------------------------------------
+
+    def _validate_request(
+        self,
+        request: PromptRequest,
+    ) -> None:
+        """Validate common prompt request fields."""
+
+        if not request.task or not request.task.strip():
+            raise ValueError("Task cannot be empty.")
+
+        if not isinstance(request.technique, PromptTechnique):
+            raise ValueError(
+                f"Unsupported prompt technique: {request.technique}"
+            )
+
+    def _validate_example(
+        self,
+        example: PromptExample,
+        index: int,
+        technique: str,
+    ) -> None:
+        """Validate a prompt example."""
+
+        if not example.input or not example.input.strip():
+            raise ValueError(
+                f"{technique} Example {index} input cannot be empty."
+            )
+
+        if not example.output or not example.output.strip():
+            raise ValueError(
+                f"{technique} Example {index} output cannot be empty."
+            )
+
+    # ------------------------------------------------------------------
+    # COMMON HELPERS
+    # ------------------------------------------------------------------
+
+    def _add_optional_section(
+        self,
+        sections: List[str],
+        title: str,
+        value: Optional[str],
+    ) -> None:
+        """Add a section only when a value is provided."""
+
+        if value and value.strip():
+            sections.append(
+                f"{title}:\n{value.strip()}"
+            )
+
+    def _format_example(
+        self,
+        example: PromptExample,
+        index: Optional[int] = None,
+    ) -> str:
+        """Format a prompt example consistently."""
+
+        if index is not None:
+            return (
+                f"Example {index}:\n"
+                f"Input: {example.input.strip()}\n"
+                f"Output: {example.output.strip()}"
+            )
+
+        return (
+            "Example:\n"
+            f"Input: {example.input.strip()}\n"
+            f"Output: {example.output.strip()}"
+        )
+
+    def _with_response_style(
+        self,
+        prompt: str,
+    ) -> str:
+        """Append common response style instructions."""
+
+        return (
+            f"{prompt.strip()}\n\n"
+            f"{self.RESPONSE_STYLE}"
+        )
+
+    def _build_common_sections(
+        self,
+        request: PromptRequest,
+    ) -> List[str]:
+        """Build reusable prompt sections."""
+
+        sections: List[str] = []
+
+        self._add_optional_section(
+            sections,
+            "ROLE",
+            request.role,
+        )
+
+        self._add_optional_section(
+            sections,
+            "CONTEXT",
+            request.context,
+        )
+
+        sections.append(
+            f"TASK:\n{request.task.strip()}"
+        )
+
+        self._add_optional_section(
+            sections,
+            "CONSTRAINTS",
+            request.constraints,
+        )
+
+        self._add_optional_section(
+            sections,
+            "EXPECTED OUTPUT",
+            request.expected_output,
+        )
+
+        return sections
+
+    # ------------------------------------------------------------------
+    # ZERO-SHOT
+    # ------------------------------------------------------------------
+
     def _build_zero_shot(
         self,
         request: PromptRequest,
     ) -> str:
-        """Build a direct instruction without examples."""
+        """
+        Zero-shot prompting.
 
-        return request.task.strip()
+        Solves the task without providing examples.
+        """
+
+        sections = self._build_common_sections(request)
+
+        return self._with_response_style(
+            "\n\n".join(sections)
+        )
+
+    # ------------------------------------------------------------------
+    # ONE-SHOT
+    # ------------------------------------------------------------------
 
     def _build_one_shot(
         self,
         request: PromptRequest,
     ) -> str:
-        """Build a prompt containing exactly one example."""
+        """
+        One-shot prompting.
 
-        if len(request.examples) < 1:
+        Uses exactly one example to demonstrate
+        the expected behavior or output style.
+        """
+
+        if not request.examples:
             raise ValueError(
-                "One-shot prompting requires at least one example."
+                "One-shot prompting requires one example. "
+                "Provide an Input and Output example."
             )
 
         example = request.examples[0]
 
-        return (
-            "Example:\n"
-            f"Input: {example.input}\n"
-            f"Output: {example.output}\n\n"
-            "Task:\n"
-            f"{request.task.strip()}"
+        self._validate_example(
+            example,
+            index=1,
+            technique="One-shot",
         )
+
+        sections = [
+            self._format_example(example),
+        ]
+
+        common_sections = self._build_common_sections(request)
+        sections.extend(common_sections)
+
+        return self._with_response_style(
+            "\n\n".join(sections)
+        )
+
+    # ------------------------------------------------------------------
+    # FEW-SHOT
+    # ------------------------------------------------------------------
 
     def _build_few_shot(
         self,
         request: PromptRequest,
     ) -> str:
-        """Build a prompt containing multiple examples."""
+        """
+        Few-shot prompting.
+
+        Uses multiple examples to establish
+        a clear input/output pattern.
+        """
 
         if len(request.examples) < 2:
             raise ValueError(
-                "Few-shot prompting requires at least two examples."
+                "Few-shot prompting requires at least two examples. "
+                "Provide two or more Input/Output examples."
             )
 
-        example_blocks = []
+        example_blocks: List[str] = []
 
         for index, example in enumerate(
             request.examples,
             start=1,
         ):
-            example_blocks.append(
-                f"Example {index}:\n"
-                f"Input: {example.input}\n"
-                f"Output: {example.output}"
+            self._validate_example(
+                example,
+                index=index,
+                technique="Few-shot",
             )
 
-        examples_text = "\n\n".join(example_blocks)
+            example_blocks.append(
+                self._format_example(
+                    example,
+                    index=index,
+                )
+            )
 
-        return (
-            f"{examples_text}\n\n"
-            "Task:\n"
-            f"{request.task.strip()}"
+        sections = [
+            "EXAMPLES:\n" + "\n\n".join(example_blocks)
+        ]
+
+        common_sections = self._build_common_sections(request)
+        sections.extend(common_sections)
+
+        return self._with_response_style(
+            "\n\n".join(sections)
         )
+
+    # ------------------------------------------------------------------
+    # ROLE-BASED
+    # ------------------------------------------------------------------
 
     def _build_role_based(
         self,
         request: PromptRequest,
     ) -> str:
-        """Build a prompt using an explicit expert role."""
+        """
+        Role-based prompting.
+
+        Assigns a specific role/persona to the model
+        before executing the task.
+        """
 
         if not request.role or not request.role.strip():
             raise ValueError(
                 "Role-based prompting requires a role."
             )
 
-        return (
-            f"You are {request.role.strip()}.\n\n"
-            "Task:\n"
-            f"{request.task.strip()}"
+        sections = [
+            (
+                "ROLE:\n"
+                f"You are an expert {request.role.strip()}."
+            )
+        ]
+
+        self._add_optional_section(
+            sections,
+            "CONTEXT",
+            request.context,
         )
+
+        sections.append(
+            f"TASK:\n{request.task.strip()}"
+        )
+
+        self._add_optional_section(
+            sections,
+            "CONSTRAINTS",
+            request.constraints,
+        )
+
+        self._add_optional_section(
+            sections,
+            "EXPECTED OUTPUT",
+            request.expected_output,
+        )
+
+        return self._with_response_style(
+            "\n\n".join(sections)
+        )
+
+    # ------------------------------------------------------------------
+    # CHAIN-OF-THOUGHT
+    # ------------------------------------------------------------------
 
     def _build_chain_of_thought(
         self,
         request: PromptRequest,
     ) -> str:
         """
-        Build a reasoning-oriented prompt.
+        Reasoning-oriented prompting.
 
-        The prompt asks the model to reason carefully before
-        producing the final answer.
+        Instructs the model to reason carefully internally
+        without requesting private chain-of-thought disclosure.
         """
 
-        return (
-            "Analyze the problem carefully and reason through "
-            "the solution step by step before providing the "
-            "final answer.\n\n"
-            "Task:\n"
-            f"{request.task.strip()}"
+        sections = [
+            (
+                "REASONING INSTRUCTION:\n"
+                "Analyze the problem carefully before producing "
+                "the final answer.\n"
+                "Break the problem into logical steps internally.\n"
+                "Do not expose private chain-of-thought reasoning.\n"
+                "Provide only the final answer and a concise "
+                "reasoning summary when useful."
+            )
+        ]
+
+        self._add_optional_section(
+            sections,
+            "ROLE",
+            request.role,
         )
+
+        self._add_optional_section(
+            sections,
+            "CONTEXT",
+            request.context,
+        )
+
+        sections.append(
+            f"TASK:\n{request.task.strip()}"
+        )
+
+        self._add_optional_section(
+            sections,
+            "CONSTRAINTS",
+            request.constraints,
+        )
+
+        self._add_optional_section(
+            sections,
+            "EXPECTED OUTPUT",
+            request.expected_output,
+        )
+
+        return self._with_response_style(
+            "\n\n".join(sections)
+        )
+
+    # ------------------------------------------------------------------
+    # STRUCTURED
+    # ------------------------------------------------------------------
 
     def _build_structured(
         self,
         request: PromptRequest,
     ) -> str:
-        """Build a structured prompt from reusable sections."""
+        """
+        Structured prompting.
 
-        sections = []
+        Organizes the request into explicit sections and
+        instructs the model to follow the requested format.
+        """
 
-        if request.role and request.role.strip():
-            sections.append(
-                "ROLE:\n"
-                f"{request.role.strip()}"
-            )
-
-        if request.context and request.context.strip():
-            sections.append(
-                "CONTEXT:\n"
-                f"{request.context.strip()}"
-            )
-
-        sections.append(
-            "TASK:\n"
-            f"{request.task.strip()}"
-        )
-
-        if request.constraints and request.constraints.strip():
-            sections.append(
-                "CONSTRAINTS:\n"
-                f"{request.constraints.strip()}"
-            )
-
-        if request.expected_output and request.expected_output.strip():
-            sections.append(
-                "EXPECTED OUTPUT:\n"
-                f"{request.expected_output.strip()}"
-            )
+        sections = self._build_common_sections(request)
 
         if request.examples:
-            example_blocks = []
+            valid_examples: List[str] = []
 
             for index, example in enumerate(
                 request.examples,
                 start=1,
             ):
-                example_blocks.append(
-                    f"Example {index}:\n"
-                    f"Input: {example.input}\n"
-                    f"Output: {example.output}"
+                if (
+                    example.input
+                    and example.input.strip()
+                    and example.output
+                    and example.output.strip()
+                ):
+                    valid_examples.append(
+                        self._format_example(
+                            example,
+                            index=index,
+                        )
+                    )
+
+            if valid_examples:
+                sections.append(
+                    "EXAMPLES:\n"
+                    + "\n\n".join(valid_examples)
                 )
 
-            sections.append(
-                "EXAMPLES:\n"
-                + "\n\n".join(example_blocks)
+        sections.append(
+            (
+                "STRUCTURED RESPONSE INSTRUCTION:\n"
+                "Follow the requested output structure exactly.\n"
+                "Return only the requested information.\n"
+                "Do not add unnecessary sections or information."
             )
+        )
 
-        return "\n\n".join(sections)
+        return self._with_response_style(
+            "\n\n".join(sections)
+        )

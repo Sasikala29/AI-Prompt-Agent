@@ -8,7 +8,8 @@ from sqlalchemy import DateTime, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.database.base import Base
-
+from backend.models.user import User
+from backend.models.message import Message
 
 class Conversation(Base):
     """

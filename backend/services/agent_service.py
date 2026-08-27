@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+
 from backend.schemas.agent import StructuredAgentResponse
 from backend.schemas.llm import (
     LLMMessage,
@@ -13,9 +15,6 @@ from backend.services.llm_service import LLMService
 class AgentService:
     """
     Agent orchestrator using native LLM tool calling.
-
-    Model parameters are received from the UI and passed
-    through to the LLM provider.
     """
 
     MAX_TOOL_ROUNDS = 3
@@ -25,6 +24,7 @@ class AgentService:
         llm_service: LLMService | None = None,
     ) -> None:
         self.llm_service = llm_service or LLMService()
+
         self.tools = AgentTools(
             llm_service=self.llm_service,
         )
@@ -68,8 +68,6 @@ class AgentService:
 
         for round_number in range(self.MAX_TOOL_ROUNDS):
 
-            # Tool-calling request should remain text-based.
-            # JSON formatting is applied to the final response.
             request_format = (
                 "text"
                 if tools and round_number < self.MAX_TOOL_ROUNDS - 1
@@ -89,7 +87,12 @@ class AgentService:
 
             response = await self.llm_service.generate(request)
 
+            # ------------------------------------------------
+            # No tool call -> final answer
+            # ------------------------------------------------
+
             if not response.tool_calls:
+
                 final_content = response.content.strip()
 
                 if response_format == "json":
@@ -103,12 +106,41 @@ class AgentService:
                     model=response.model,
                 )
 
+            # ------------------------------------------------
+            # IMPORTANT:
+            # Preserve assistant tool_calls exactly in the
+            # format required by Groq/OpenAI-compatible APIs.
+            # ------------------------------------------------
+
+            assistant_tool_calls = []
+
+            for tool_call in response.tool_calls:
+
+                assistant_tool_calls.append(
+                    {
+                        "id": tool_call.tool_call_id,
+                        "type": "function",
+                        "function": {
+                            "name": tool_call.name,
+                            "arguments": json.dumps(
+                                tool_call.arguments,
+                                ensure_ascii=False,
+                            ),
+                        },
+                    }
+                )
+
             messages.append(
                 LLMMessage(
                     role="assistant",
-                    content=response.content,
+                    content=response.content or "",
+                    tool_calls=assistant_tool_calls,
                 )
             )
+
+            # ------------------------------------------------
+            # Execute tools and append matching tool messages
+            # ------------------------------------------------
 
             for tool_call in response.tool_calls:
 
@@ -123,10 +155,8 @@ class AgentService:
                 messages.append(
                     LLMMessage(
                         role="tool",
-                        content=(
-                            f"Tool: {tool_call.name}\n"
-                            f"Result: {result}"
-                        ),
+                        content=result,
+                        tool_call_id=tool_call.tool_call_id,
                     )
                 )
 
@@ -136,14 +166,6 @@ class AgentService:
 
     @staticmethod
     def _ensure_json_response(content: str) -> str:
-        """
-        Ensure JSON mode returns valid JSON text.
-
-        Ollama normally guarantees JSON when format=json,
-        but this fallback prevents malformed output from
-        breaking the frontend.
-        """
-
         import json
 
         try:
@@ -163,6 +185,7 @@ class AgentService:
             )
 
         except (json.JSONDecodeError, TypeError):
+
             return json.dumps(
                 {"response": content},
                 indent=2,

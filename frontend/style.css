@@ -1,3 +1,8 @@
+
+/* ============================================================
+   GLOBAL RESET
+============================================================ */
+
 * {
     box-sizing: border-box;
 }
@@ -8,254 +13,650 @@ body {
     padding: 0;
     width: 100%;
     height: 100%;
+    overflow: hidden;
+
     font-family: Arial, Helvetica, sans-serif;
-    background: #f7f7f8;
-    color: #202123;
+
+    background: #f5f7fb;
+    color: #1f2937;
 }
 
-body {
+button,
+input,
+textarea,
+select {
+    font: inherit;
+}
+
+
+/* ============================================================
+   MAIN APPLICATION
+============================================================ */
+
+.app {
+    width: 100%;
+    height: 100vh;
+
+    display: flex;
+
     overflow: hidden;
 }
 
-.app {
-    display: flex;
-    width: 100vw;
-    height: 100vh;
-}
 
-/* SIDEBAR */
+/* ============================================================
+   LEFT SIDEBAR
+============================================================ */
 
 .sidebar {
-    width: 270px;
+    width: 280px;
+    min-width: 280px;
     height: 100vh;
-    background: #202123;
-    color: white;
+
     display: flex;
     flex-direction: column;
-    padding: 18px 12px;
+
+    background: #ffffff;
+
+    border-right: 1px solid #e5e7eb;
+
+    overflow: hidden;
 }
+
+
+/* ============================================================
+   BRAND
+============================================================ */
 
 .brand {
-    padding: 8px 12px 20px;
+    flex-shrink: 0;
+
+    padding: 18px;
+
+    border-bottom: 1px solid #e5e7eb;
 }
 
-.brand h1 {
-    margin: 0;
+.brand h2 {
+    margin: 0 0 4px;
+
     font-size: 20px;
+    font-weight: 700;
 }
 
-.brand p {
-    margin: 6px 0 0;
-    color: #b5b5b5;
+.brand span {
     font-size: 13px;
+
+    color: #6b7280;
 }
+
+
+/* ============================================================
+   NEW CHAT BUTTON
+============================================================ */
 
 .new-chat {
-    width: 100%;
-    padding: 12px;
-    border: 1px solid #565869;
+    flex-shrink: 0;
+
+    width: calc(100% - 24px);
+
+    margin: 12px 12px 0;
+
+    padding: 10px 14px;
+
+    border: none;
     border-radius: 8px;
-    background: transparent;
-    color: white;
+
+    background: #2563eb;
+    color: #ffffff;
+
     cursor: pointer;
-    text-align: left;
-    font-size: 14px;
+
+    font-weight: 600;
 }
 
 .new-chat:hover {
-    background: #2a2b32;
+    background: #1d4ed8;
 }
 
-.sidebar-title {
-    margin: 24px 12px 10px;
-    color: #8e8ea0;
-    font-size: 12px;
-    text-transform: uppercase;
+
+/* ============================================================
+   DATABASE / COMPARISON BUTTONS
+============================================================ */
+
+.database-button {
+    flex-shrink: 0;
+
+    width: calc(100% - 24px);
+
+    margin: 8px 12px 0;
+
+    padding: 9px 12px;
+
+    border: 1px solid #e5e7eb;
+    border-radius: 7px;
+
+    background: #ffffff;
+
+    color: #374151;
+
+    text-align: left;
+
+    cursor: pointer;
 }
+
+.database-button:hover {
+    background: #f3f4f6;
+}
+
+
+/* ============================================================
+   SIDEBAR TITLE
+============================================================ */
+
+.sidebar-title {
+    flex-shrink: 0;
+
+    padding: 14px 12px 8px;
+
+    font-size: 12px;
+    font-weight: 700;
+
+    color: #6b7280;
+}
+
+
+/* ============================================================
+   ⭐ CONVERSATION LIST
+   ⭐ ONLY THIS SECTION SCROLLS
+============================================================ */
 
 .conversation-list {
     flex: 1;
+
+    min-height: 0;
+
     overflow-y: auto;
+    overflow-x: hidden;
+
+    padding: 8px 10px 15px;
+
+    scrollbar-width: auto;
+    scrollbar-color: #9ca3af #e5e7eb;
 }
+
+
+/* Chrome / Edge */
+
+.conversation-list::-webkit-scrollbar {
+    width: 10px;
+}
+
+.conversation-list::-webkit-scrollbar-track {
+    background: #e5e7eb;
+}
+
+.conversation-list::-webkit-scrollbar-thumb {
+    background: #9ca3af;
+
+    border-radius: 8px;
+
+    border: 2px solid #e5e7eb;
+}
+
+.conversation-list::-webkit-scrollbar-thumb:hover {
+    background: #6b7280;
+}
+
+
+/* ============================================================
+   CONVERSATION ITEMS
+============================================================ */
 
 .conversation-item {
     display: flex;
     align-items: center;
-    gap: 4px;
-    margin-bottom: 3px;
+
+    width: 100%;
+
+    margin-bottom: 5px;
+
     border-radius: 7px;
+
+    overflow: hidden;
 }
 
-.conversation-item:hover,
 .conversation-item.active {
-    background: #2a2b32;
+    background: #eff6ff;
 }
 
 .conversation-open {
     flex: 1;
+
     min-width: 0;
+
     padding: 10px;
+
     border: none;
+
     background: transparent;
-    color: #ececf1;
-    cursor: pointer;
+
+    color: #374151;
+
     text-align: left;
+
+    cursor: pointer;
+}
+
+.conversation-open:hover {
+    background: #f3f4f6;
 }
 
 .conversation-title {
     display: block;
+
     overflow: hidden;
+
     white-space: nowrap;
+
     text-overflow: ellipsis;
+
+    font-size: 13px;
 }
 
 .conversation-delete {
+    flex-shrink: 0;
+
     padding: 8px;
+
     border: none;
+
     background: transparent;
-    color: #9b9b9b;
+
+    color: #ef4444;
+
     cursor: pointer;
+
     font-size: 10px;
 }
 
 .conversation-delete:hover {
-    color: #ff6b6b;
+    color: #b91c1c;
 }
 
 .empty-conversations {
-    padding: 12px;
-    color: #8e8ea0;
+    padding: 20px 10px;
+
+    text-align: center;
+
+    color: #9ca3af;
+
     font-size: 13px;
 }
 
-/* MAIN */
+
+/* ============================================================
+   MAIN
+============================================================ */
 
 .main {
     flex: 1;
+
+    min-width: 0;
+
     height: 100vh;
+
     display: flex;
     flex-direction: column;
-    min-width: 0;
-    background: #ffffff;
+
+    overflow: hidden;
+
+    background: #f8fafc;
 }
 
-/* TOPBAR */
+
+/* ============================================================
+   CHAT VIEW
+============================================================ */
+
+#chatView {
+    flex: 1;
+
+    min-width: 0;
+    min-height: 0;
+
+    display: flex;
+    flex-direction: column;
+
+    overflow: hidden;
+}
+
+#chatView.hidden,
+#databaseView.hidden,
+#comparisonView.hidden {
+    display: none;
+}
+
+
+/* ============================================================
+   TOP BAR
+============================================================ */
 
 .topbar {
-    height: 70px;
     flex-shrink: 0;
+
+    min-height: 58px;
+
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 25px;
-    border-bottom: 1px solid #e5e5e5;
-    background: white;
+
+    gap: 15px;
+
+    padding: 10px 20px;
+
+    background: #ffffff;
+
+    border-bottom: 1px solid #e5e7eb;
 }
 
 .topbar h2 {
-    margin: 0 0 4px;
+    margin: 0 0 3px;
+
     font-size: 18px;
+    font-weight: 700;
 }
 
 .status {
-    color: #666;
     font-size: 12px;
+
+    color: #6b7280;
 }
+
+
+/* ============================================================
+   TOPBAR CONTROLS
+============================================================ */
 
 .controls {
     display: flex;
     align-items: center;
-    gap: 10px;
+
+    gap: 8px;
+
+    flex-wrap: wrap;
 }
 
 .controls select {
-    padding: 8px 12px;
-    border-radius: 7px;
+    height: 34px;
+
+    padding: 6px 9px;
+
     border: 1px solid #d1d5db;
-    background: white;
-    font-size: 13px;
-    cursor: pointer;
+
+    border-radius: 6px;
+
+    background: #ffffff;
+
+    color: #374151;
+
+    outline: none;
+
+    font-size: 12px;
 }
 
-/* PROMPT OPTIONS */
+.controls select:focus {
+    border-color: #2563eb;
+}
+
+
+/* ============================================================
+   MODEL PARAMETERS
+   SMALL / FIXED
+============================================================ */
+
+.model-parameters {
+    flex-shrink: 0;
+
+    padding: 8px 18px;
+
+    background: #ffffff;
+
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.parameter-header {
+    display: flex;
+    align-items: center;
+
+    gap: 8px;
+
+    margin-bottom: 6px;
+}
+
+.parameter-header h3 {
+    margin: 0;
+
+    font-size: 12px;
+    font-weight: 700;
+
+    color: #374151;
+}
+
+.parameter-header span {
+    font-size: 11px;
+
+    color: #9ca3af;
+}
+
+
+/* ============================================================
+   PARAMETER GRID
+============================================================ */
+
+.parameter-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(4, minmax(120px, 1fr));
+
+    gap: 10px;
+}
+
+.parameter-field {
+    min-width: 0;
+}
+
+.parameter-field label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    margin-bottom: 3px;
+
+    font-size: 11px;
+    font-weight: 600;
+
+    color: #4b5563;
+}
+
+.parameter-field label span {
+    font-weight: 700;
+
+    color: #111827;
+}
+
+.parameter-field input[type="range"] {
+    width: 100%;
+
+    height: 16px;
+}
+
+.parameter-field select {
+    width: 100%;
+
+    height: 30px;
+
+    padding: 5px 7px;
+
+    border: 1px solid #d1d5db;
+
+    border-radius: 6px;
+
+    background: #ffffff;
+
+    font-size: 12px;
+}
+
+.parameter-field small {
+    display: block;
+
+    margin-top: 2px;
+
+    font-size: 9px;
+
+    line-height: 1.3;
+
+    color: #9ca3af;
+}
+
+
+/* ============================================================
+   PROMPT OPTIONS
+   SMALL / FIXED
+============================================================ */
 
 .prompt-options {
-    background: white;
+    flex-shrink: 0;
+
+    display: flex;
+    flex-wrap: wrap;
+
+    gap: 8px;
+
+    padding: 8px 18px;
+
+    background: #ffffff;
+
     border-bottom: 1px solid #e5e7eb;
-    padding: 15px 25px;
-    max-height: 300px;
-    overflow-y: auto;
 }
 
 .prompt-field {
-    margin-bottom: 12px;
-}
+    flex: 1;
 
-.prompt-field:last-child {
-    margin-bottom: 0;
+    min-width: 150px;
 }
 
 .prompt-field label {
     display: block;
-    margin-bottom: 6px;
-    font-size: 13px;
-    font-weight: 600;
-    color: #374151;
+
+    margin-bottom: 3px;
+
+    font-size: 11px;
+
+    color: #6b7280;
 }
 
 .prompt-field input,
-.prompt-field textarea {
+.prompt-field textarea,
+.prompt-field select {
     width: 100%;
-    padding: 10px 12px;
-    border: 1px solid #d1d5db;
-    border-radius: 7px;
-    outline: none;
-    font-family: Arial, sans-serif;
-    font-size: 14px;
-}
 
-.prompt-field textarea {
-    min-height: 70px;
-    resize: vertical;
+    padding: 6px 8px;
+
+    border: 1px solid #d1d5db;
+
+    border-radius: 6px;
+
+    background: #ffffff;
+
+    color: #374151;
+
+    font-size: 12px;
+
+    outline: none;
 }
 
 .prompt-field input:focus,
-.prompt-field textarea:focus {
+.prompt-field textarea:focus,
+.prompt-field select:focus {
     border-color: #2563eb;
 }
 
-.hidden {
-    display: none;
+.prompt-field textarea {
+    min-height: 45px;
+
+    resize: vertical;
 }
 
-/* MESSAGES */
+
+/* ============================================================
+   HIDDEN
+============================================================ */
+
+.hidden {
+    display: none !important;
+}
+
+
+/* ============================================================
+   ⭐ MAIN MESSAGE AREA
+   ⭐ THIS IS THE SECOND INDEPENDENT SCROLL
+============================================================ */
 
 .messages {
-    flex: 1;
+    flex: 1 1 auto;
+
+    min-width: 0;
+    min-height: 0;
+
+    width: 100%;
+
     overflow-y: auto;
-    padding: 30px 12%;
-    scroll-behavior: smooth;
+    overflow-x: hidden;
+
+    padding: 24px 32px 30px;
+
+    background: #f8fafc;
+
+    scrollbar-width: auto;
+    scrollbar-color: #9ca3af #e5e7eb;
 }
 
-.welcome {
-    max-width: 700px;
-    margin: 120px auto;
-    text-align: center;
+
+/* ============================================================
+   MESSAGE SCROLLBAR
+============================================================ */
+
+.messages::-webkit-scrollbar {
+    width: 12px;
 }
 
-.welcome h2 {
-    font-size: 28px;
-    margin-bottom: 10px;
+.messages::-webkit-scrollbar-track {
+    background: #e5e7eb;
 }
 
-.welcome p {
-    color: #666;
-    font-size: 15px;
+.messages::-webkit-scrollbar-thumb {
+    background: #9ca3af;
+
+    border-radius: 8px;
+
+    border: 2px solid #e5e7eb;
 }
+
+.messages::-webkit-scrollbar-thumb:hover {
+    background: #6b7280;
+}
+
+
+/* ============================================================
+   MESSAGE
+============================================================ */
 
 .message {
+    width: 100%;
+
+    margin-bottom: 20px;
+
     display: flex;
-    margin-bottom: 24px;
 }
 
 .message.user {
@@ -266,309 +667,566 @@ body {
     justify-content: flex-start;
 }
 
+
+/* ============================================================
+   MESSAGE CONTENT
+============================================================ */
+
 .message-content {
-    max-width: 75%;
-    padding: 13px 17px;
+    max-width: 78%;
+
+    padding: 13px 16px;
+
     border-radius: 12px;
-    line-height: 1.5;
-    font-size: 15px;
-    white-space: pre-wrap;
+
+    line-height: 1.6;
+
+    font-size: 14px;
+
     word-wrap: break-word;
+    overflow-wrap: anywhere;
 }
 
 .message.user .message-content {
-    background: #343541;
-    color: white;
+    background: #2563eb;
+
+    color: #ffffff;
+
     border-bottom-right-radius: 4px;
 }
 
 .message.assistant .message-content {
-    background: #f1f1f0;
-    color: #202123;
+    background: #ffffff;
+
+    color: #1f2937;
+
+    border: 1px solid #e5e7eb;
+
     border-bottom-left-radius: 4px;
 }
 
-/* INPUT */
+
+/* ============================================================
+   WELCOME
+============================================================ */
+
+.welcome {
+    max-width: 700px;
+
+    margin: 40px auto;
+
+    text-align: center;
+
+    color: #6b7280;
+}
+
+.welcome h2 {
+    margin-bottom: 8px;
+
+    color: #1f2937;
+}
+
+.welcome p {
+    margin: 0;
+
+    line-height: 1.6;
+}
+
+
+/* ============================================================
+   MARKDOWN
+============================================================ */
+
+.markdown-body {
+    line-height: 1.65;
+}
+
+.markdown-body p {
+    margin: 0 0 12px;
+}
+
+.markdown-body p:last-child {
+    margin-bottom: 0;
+}
+
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3,
+.markdown-body h4,
+.markdown-body h5,
+.markdown-body h6 {
+    margin-top: 18px;
+    margin-bottom: 8px;
+
+    color: #111827;
+}
+
+.markdown-body h1 {
+    font-size: 22px;
+}
+
+.markdown-body h2 {
+    font-size: 20px;
+}
+
+.markdown-body h3 {
+    font-size: 18px;
+}
+
+.markdown-body h4 {
+    font-size: 16px;
+}
+
+.markdown-body strong {
+    font-weight: 700;
+}
+
+.markdown-body em {
+    font-style: italic;
+}
+
+.markdown-body code {
+    padding: 2px 5px;
+
+    border-radius: 4px;
+
+    background: #f3f4f6;
+
+    font-family: Consolas, monospace;
+
+    font-size: 13px;
+}
+
+.markdown-body pre {
+    width: 100%;
+    max-width: 100%;
+
+    overflow-x: auto;
+
+    padding: 14px;
+
+    margin: 12px 0;
+
+    border-radius: 8px;
+
+    background: #111827;
+
+    color: #f9fafb;
+}
+
+.markdown-body pre code {
+    padding: 0;
+
+    background: transparent;
+
+    color: inherit;
+
+    white-space: pre;
+}
+
+.markdown-body blockquote {
+    margin: 12px 0;
+
+    padding: 8px 14px;
+
+    border-left: 4px solid #9ca3af;
+
+    background: #f9fafb;
+
+    color: #4b5563;
+}
+
+.markdown-body ul,
+.markdown-body ol {
+    padding-left: 24px;
+
+    margin: 10px 0;
+}
+
+.markdown-body li {
+    margin-bottom: 5px;
+}
+
+.markdown-body hr {
+    margin: 18px 0;
+
+    border: none;
+
+    border-top: 1px solid #e5e7eb;
+}
+
+.markdown-body a {
+    color: #2563eb;
+
+    text-decoration: underline;
+}
+
+
+/* ============================================================
+   MARKDOWN TABLE
+============================================================ */
+
+.markdown-table-wrapper {
+    width: 100%;
+
+    overflow-x: auto;
+
+    margin: 14px 0;
+}
+
+.markdown-table {
+    width: 100%;
+
+    min-width: 500px;
+
+    border-collapse: collapse;
+
+    font-size: 13px;
+}
+
+.markdown-table th,
+.markdown-table td {
+    padding: 8px 10px;
+
+    border: 1px solid #d1d5db;
+
+    text-align: left;
+}
+
+.markdown-table th {
+    background: #f3f4f6;
+
+    font-weight: 700;
+}
+
+
+/* ============================================================
+   ⭐ CHAT INPUT
+   ⭐ ALWAYS STAYS AT BOTTOM
+============================================================ */
 
 .input-area {
+    flex-shrink: 0;
+
+    width: 100%;
+
     display: flex;
+    align-items: flex-end;
+
     gap: 10px;
-    padding: 18px 12%;
-    border-top: 1px solid #e5e5e5;
-    background: white;
+
+    padding: 12px 18px;
+
+    background: #ffffff;
+
+    border-top: 1px solid #e5e7eb;
 }
+
+
+/* ============================================================
+   MESSAGE INPUT
+============================================================ */
 
 #message {
     flex: 1;
-    padding: 14px 16px;
+
+    min-width: 0;
+
+    min-height: 42px;
+    max-height: 120px;
+
+    padding: 11px 13px;
+
     border: 1px solid #d1d5db;
-    border-radius: 10px;
+
+    border-radius: 8px;
+
     outline: none;
-    font-size: 15px;
+
+    background: #ffffff;
+
+    color: #111827;
 }
 
 #message:focus {
     border-color: #2563eb;
 }
 
+
+/* ============================================================
+   SEND BUTTON
+============================================================ */
+
 #sendButton {
-    padding: 0 22px;
+    flex-shrink: 0;
+
+    height: 42px;
+
+    padding: 0 18px;
+
     border: none;
-    border-radius: 10px;
-    background: #343541;
-    color: white;
+
+    border-radius: 8px;
+
+    background: #2563eb;
+
+    color: #ffffff;
+
     cursor: pointer;
-    font-size: 14px;
+
+    font-weight: 600;
 }
 
 #sendButton:hover {
-    background: #202123;
+    background: #1d4ed8;
 }
 
 #sendButton:disabled {
-    opacity: 0.5;
+    opacity: 0.6;
+
     cursor: not-allowed;
 }
 
-/* MOBILE */
-
-@media (max-width: 800px) {
-    .sidebar {
-        width: 220px;
-    }
-
-    .topbar {
-        padding: 0 15px;
-    }
-
-    .controls {
-        gap: 4px;
-    }
-
-    .controls select {
-        padding: 6px;
-        max-width: 110px;
-    }
-
-    .messages,
-    .input-area {
-        padding-left: 5%;
-        padding-right: 5%;
-    }
-
-    .message-content {
-        max-width: 90%;
-    }
-}
 
 /* ============================================================
-   DATABASE VIEWER
+   DATABASE VIEW
 ============================================================ */
 
-.database-view {
+#databaseView {
     flex: 1;
-    overflow-y: auto;
-    padding: 30px 5%;
-    background: #f8f9fa;
+
+    min-width: 0;
+    min-height: 0;
+
+    display: flex;
+    flex-direction: column;
+
+    overflow: hidden;
+
+    background: #f8fafc;
 }
 
+
+/* ============================================================
+   DATABASE HEADER
+============================================================ */
+
 .database-header {
+    flex-shrink: 0;
+
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-bottom: 25px;
+    justify-content: space-between;
+
+    padding: 16px 20px;
+
+    background: #ffffff;
+
+    border-bottom: 1px solid #e5e7eb;
 }
 
 .database-header h2 {
-    margin: 0 0 6px;
-    font-size: 24px;
+    margin: 0 0 4px;
+
+    font-size: 18px;
 }
 
 .database-header p {
     margin: 0;
+
+    font-size: 12px;
+
     color: #6b7280;
 }
 
-.database-button {
-    width: 100%;
-    padding: 10px 12px;
-    margin-bottom: 20px;
-    border: 1px solid #374151;
-    border-radius: 8px;
-    background: #202123;
-    color: white;
-    cursor: pointer;
-    font-size: 14px;
-    text-align: left;
-}
-
-.database-button:hover {
-    background: #343541;
-}
-
 .refresh-button {
-    padding: 9px 16px;
+    padding: 8px 13px;
+
     border: 1px solid #d1d5db;
-    border-radius: 8px;
-    background: white;
+
+    border-radius: 7px;
+
+    background: #ffffff;
+
     cursor: pointer;
 }
+
+.refresh-button:hover {
+    background: #f3f4f6;
+}
+
+
+/* ============================================================
+   DATABASE TABS
+============================================================ */
 
 .database-tabs {
+    flex-shrink: 0;
+
     display: flex;
+
     gap: 8px;
-    margin-bottom: 18px;
+
+    padding: 10px 18px;
+
+    background: #ffffff;
+
+    border-bottom: 1px solid #e5e7eb;
 }
 
 .db-tab {
-    padding: 9px 18px;
+    padding: 7px 12px;
+
     border: 1px solid #d1d5db;
-    border-radius: 8px;
-    background: white;
+
+    border-radius: 6px;
+
+    background: #ffffff;
+
     cursor: pointer;
 }
 
 .db-tab.active {
-    background: #343541;
-    color: white;
-    border-color: #343541;
+    background: #2563eb;
+
+    color: #ffffff;
+
+    border-color: #2563eb;
 }
 
+
+/* ============================================================
+   DATABASE CONTENT
+============================================================ */
+
 .database-content {
-    background: white;
-    border: 1px solid #e5e7eb;
-    border-radius: 10px;
+    flex: 1;
+
+    min-height: 0;
+
     overflow: auto;
+
+    padding: 20px;
 }
 
 .data-table {
     width: 100%;
+
     border-collapse: collapse;
-    font-size: 13px;
+
+    background: #ffffff;
+}
+
+.data-table th,
+.data-table td {
+    padding: 10px;
+
+    border: 1px solid #e5e7eb;
+
+    text-align: left;
 }
 
 .data-table th {
     background: #f3f4f6;
-    color: #374151;
-    font-weight: 600;
-    text-align: left;
-    padding: 12px;
-    border-bottom: 1px solid #e5e7eb;
-    white-space: nowrap;
-}
-
-.data-table td {
-    padding: 12px;
-    border-bottom: 1px solid #f0f0f0;
-    vertical-align: top;
-    max-width: 500px;
-    white-space: pre-wrap;
-}
-
-.data-table tr:hover {
-    background: #fafafa;
 }
 
 .database-loading,
 .database-empty,
 .database-error {
-    padding: 40px;
+    padding: 30px;
+
     text-align: center;
+
     color: #6b7280;
 }
 
-.database-error {
-    color: #dc2626;
-}
-
-
 
 /* ============================================================
-   MODEL PARAMETERS
-============================================================ */
-
-.model-parameters {
-    display: flex;
-    align-items: end;
-    gap: 18px;
-    padding: 12px 25px;
-    background: #fafafa;
-    border-bottom: 1px solid #e5e7eb;
-}
-
-.parameter-group {
-    min-width: 150px;
-}
-
-.parameter-group label {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 6px;
-    font-size: 12px;
-    font-weight: 600;
-    color: #374151;
-}
-
-.parameter-group input[type="range"] {
-    width: 150px;
-}
-
-.parameter-group input[type="number"],
-.parameter-group select {
-    width: 150px;
-    padding: 8px 10px;
-    border: 1px solid #d1d5db;
-    border-radius: 7px;
-    background: white;
-}
-
-@media (max-width: 800px) {
-    .model-parameters {
-        flex-wrap: wrap;
-    }
-}
-
-/* ============================================================
-   PROMPT COMPARISON
+   COMPARISON VIEW
+   NOTE:
+   This element is outside .app in your HTML.
 ============================================================ */
 
 .comparison-view {
-    flex: 1;
-    overflow-y: auto;
-    padding: 30px 5%;
-    background: #f8f9fa;
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 100;
+
+    display: flex;
+    flex-direction: column;
+
+    overflow: hidden;
+
+    background: #f8fafc;
 }
 
+.comparison-view.hidden {
+    display: none !important;
+}
+
+
+/* ============================================================
+   COMPARISON HEADER
+============================================================ */
+
 .comparison-header {
+    flex-shrink: 0;
+
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-bottom: 25px;
+    justify-content: space-between;
+
+    padding: 16px 20px;
+
+    background: #ffffff;
+
+    border-bottom: 1px solid #e5e7eb;
 }
 
 .comparison-header h2 {
-    margin: 0 0 6px;
-    font-size: 24px;
+    margin: 0 0 4px;
+
+    font-size: 18px;
 }
 
 .comparison-header p {
     margin: 0;
+
+    font-size: 12px;
+
     color: #6b7280;
 }
 
+
+/* ============================================================
+   COMPARISON FORM
+============================================================ */
+
 .comparison-form {
-    background: white;
-    border: 1px solid #e5e7eb;
-    border-radius: 10px;
-    padding: 22px;
-    margin-bottom: 25px;
+    flex-shrink: 0;
+
+    padding: 18px 20px;
+
+    background: #ffffff;
+
+    border-bottom: 1px solid #e5e7eb;
+
+    overflow-y: auto;
+
+    max-height: 48vh;
 }
 
 .comparison-form label {
     display: block;
-    margin-bottom: 7px;
+
+    margin-bottom: 5px;
+
+    font-size: 12px;
+
     font-weight: 600;
-    font-size: 13px;
+
     color: #374151;
 }
 
@@ -576,73 +1234,160 @@ body {
 .comparison-form input,
 .comparison-form select {
     width: 100%;
-    box-sizing: border-box;
-    padding: 10px 12px;
-    margin-bottom: 18px;
+
+    padding: 8px 10px;
+
     border: 1px solid #d1d5db;
-    border-radius: 8px;
-    font-family: inherit;
-    font-size: 14px;
+
+    border-radius: 6px;
+
+    background: #ffffff;
+
+    outline: none;
+
+    font-size: 13px;
 }
 
 .comparison-form textarea {
-    min-height: 90px;
+    min-height: 70px;
+
     resize: vertical;
 }
 
-.comparison-grid,
-.comparison-options {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 18px;
+.comparison-form textarea:focus,
+.comparison-form input:focus,
+.comparison-form select:focus {
+    border-color: #2563eb;
 }
 
+
+/* ============================================================
+   COMPARISON GRID
+============================================================ */
+
+.comparison-grid {
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;
+
+    gap: 12px;
+
+    margin-top: 12px;
+}
+
+.comparison-options {
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;
+
+    gap: 12px;
+
+    margin-top: 12px;
+}
+
+
+/* ============================================================
+   COMPARE BUTTON
+============================================================ */
+
 .send-button {
-    padding: 11px 20px;
+    margin-top: 14px;
+
+    padding: 9px 16px;
+
     border: none;
-    border-radius: 8px;
-    background: #202123;
-    color: white;
+
+    border-radius: 7px;
+
+    background: #2563eb;
+
+    color: #ffffff;
+
     cursor: pointer;
-    font-size: 14px;
+
+    font-weight: 600;
 }
 
 .send-button:hover {
-    background: #343541;
+    background: #1d4ed8;
 }
 
-.send-button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
+
+/* ============================================================
+   COMPARISON LOADING
+============================================================ */
+
+#comparisonLoading {
+    flex-shrink: 0;
 }
+
+
+/* ============================================================
+   ⭐ COMPARISON RESULTS
+   ⭐ ONLY RESULTS SCROLL
+============================================================ */
 
 .comparison-results {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 20px;
+    flex: 1;
+
+    min-height: 0;
+
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    padding: 20px;
+
+    scrollbar-width: auto;
+    scrollbar-color: #9ca3af #e5e7eb;
 }
 
+.comparison-results::-webkit-scrollbar {
+    width: 12px;
+}
+
+.comparison-results::-webkit-scrollbar-track {
+    background: #e5e7eb;
+}
+
+.comparison-results::-webkit-scrollbar-thumb {
+    background: #9ca3af;
+
+    border-radius: 8px;
+
+    border: 2px solid #e5e7eb;
+}
+
+
+/* ============================================================
+   COMPARISON CARD
+============================================================ */
+
 .comparison-card {
-    background: white;
+    margin-bottom: 20px;
+
     border: 1px solid #e5e7eb;
+
     border-radius: 10px;
+
+    background: #ffffff;
+
     overflow: hidden;
 }
 
 .comparison-card-header {
-    padding: 16px;
-    background: #f3f4f6;
+    padding: 14px 16px;
+
     border-bottom: 1px solid #e5e7eb;
 }
 
 .comparison-card-header h3 {
-    margin: 0 0 8px;
-    font-size: 17px;
+    margin: 0 0 6px;
 }
 
 .comparison-meta {
-    color: #6b7280;
     font-size: 12px;
+
+    color: #6b7280;
 }
 
 .comparison-card-body {
@@ -650,29 +1395,117 @@ body {
 }
 
 .comparison-card-body h4 {
-    margin: 0 0 8px;
-    font-size: 13px;
+    margin: 14px 0 7px;
 }
 
 .comparison-prompt,
 .comparison-response {
-    background: #f8f9fa;
-    border: 1px solid #e5e7eb;
-    border-radius: 7px;
     padding: 12px;
-    margin-bottom: 18px;
-    white-space: pre-wrap;
+
+    border-radius: 7px;
+
+    background: #f8fafc;
+
+    border: 1px solid #e5e7eb;
+
     overflow-x: auto;
-    font-size: 13px;
-    line-height: 1.5;
+
+    overflow-wrap: anywhere;
 }
 
-@media (max-width: 900px) {
 
-    .comparison-grid,
-    .comparison-options,
-    .comparison-results {
-        grid-template-columns: 1fr;
+/* ============================================================
+   RESPONSIVE
+============================================================ */
+
+@media (max-width: 1000px) {
+
+    .parameter-grid {
+        grid-template-columns:
+            repeat(2, minmax(150px, 1fr));
+    }
+
+    .topbar {
+        align-items: flex-start;
+
+        flex-direction: column;
+    }
+
+    .controls {
+        width: 100%;
+    }
+
+    .controls select {
+        flex: 1;
     }
 }
 
+
+@media (max-width: 900px) {
+
+    .sidebar {
+        width: 230px;
+        min-width: 230px;
+    }
+
+    .messages {
+        padding-left: 18px;
+        padding-right: 18px;
+    }
+
+    .message-content {
+        max-width: 88%;
+    }
+}
+
+
+@media (max-width: 700px) {
+
+    .sidebar {
+        display: none;
+    }
+
+    .parameter-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .topbar {
+        padding: 10px 12px;
+    }
+
+    .controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .controls select {
+        width: 100%;
+    }
+
+    .model-parameters,
+    .prompt-options {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+
+    .messages {
+        padding: 16px 12px 20px;
+    }
+
+    .message-content {
+        max-width: 94%;
+    }
+
+    .input-area {
+        padding: 10px 12px;
+    }
+
+    .comparison-grid,
+    .comparison-options {
+        grid-template-columns: 1fr;
+    }
+
+    .comparison-form {
+        max-height: 55vh;
+    }
+}

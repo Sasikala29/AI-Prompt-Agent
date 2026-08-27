@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from backend.database.database import get_db
@@ -22,6 +23,10 @@ def get_chat_service(
 ) -> ChatService:
     return ChatService(db)
 
+
+# ============================================================
+# NORMAL CHAT
+# ============================================================
 
 @router.post(
     "/chat",
@@ -54,41 +59,9 @@ async def send_chat_message(
         ) from exc
 
 
-@router.post(
-    "/chat/stream",
-)
-async def stream_chat_message(
-    request: ChatMessageRequest,
-    service: ChatService = Depends(get_chat_service),
-):
-    from fastapi.responses import StreamingResponse
-
-    async def generate():
-        try:
-            async for chunk in service.stream_message(request):
-                yield chunk
-
-        except ValueError as exc:
-            yield f"\\n[ERROR] {exc}"
-
-        except RuntimeError as exc:
-            yield f"\\n[ERROR] {exc}"
-
-        except Exception as exc:
-            yield (
-                f"\\n[ERROR] Chat streaming failed: "
-                f"{type(exc).__name__}: {exc}"
-            )
-
-    return StreamingResponse(
-        generate(),
-        media_type="text/plain",
-        headers={
-            "Cache-Control": "no-cache",
-            "X-Accel-Buffering": "no",
-        },
-    )
-
+# ============================================================
+# STREAMING CHAT
+# ============================================================
 
 @router.post(
     "/chat/stream",
@@ -97,34 +70,43 @@ async def stream_chat_message(
     request: ChatMessageRequest,
     service: ChatService = Depends(get_chat_service),
 ):
-    from fastapi.responses import StreamingResponse
-
     async def generate():
+
         try:
+
             async for chunk in service.stream_message(request):
-                yield chunk
+
+                if chunk:
+                    yield chunk
 
         except ValueError as exc:
-            yield f"\\n[ERROR] {exc}"
+
+            yield f"\n[ERROR] {exc}"
 
         except RuntimeError as exc:
-            yield f"\\n[ERROR] {exc}"
+
+            yield f"\n[ERROR] {exc}"
 
         except Exception as exc:
+
             yield (
-                f"\\n[ERROR] Chat streaming failed: "
+                "\n[ERROR] Chat streaming failed: "
                 f"{type(exc).__name__}: {exc}"
             )
 
     return StreamingResponse(
         generate(),
-        media_type="text/plain",
+        media_type="text/plain; charset=utf-8",
         headers={
             "Cache-Control": "no-cache",
             "X-Accel-Buffering": "no",
         },
     )
 
+
+# ============================================================
+# LIST CONVERSATIONS
+# ============================================================
 
 @router.get(
     "/conversations/{user_id}",
@@ -137,6 +119,10 @@ async def list_conversations(
     return service.list_conversations(user_id)
 
 
+# ============================================================
+# GET CONVERSATION
+# ============================================================
+
 @router.get(
     "/conversations/{user_id}/{conversation_id}",
     response_model=ConversationDetailResponse,
@@ -146,12 +132,14 @@ async def get_conversation_details(
     conversation_id: int,
     service: ChatService = Depends(get_chat_service),
 ):
+
     conversation = service.get_conversation(
         conversation_id,
         user_id,
     )
 
     if conversation is None:
+
         raise HTTPException(
             status_code=404,
             detail="Conversation not found.",
@@ -159,6 +147,10 @@ async def get_conversation_details(
 
     return conversation
 
+
+# ============================================================
+# DELETE CONVERSATION
+# ============================================================
 
 @router.delete(
     "/conversations/{user_id}/{conversation_id}",
@@ -168,12 +160,14 @@ async def remove_conversation(
     conversation_id: int,
     service: ChatService = Depends(get_chat_service),
 ):
+
     deleted = service.delete_conversation(
         conversation_id,
         user_id,
     )
 
     if not deleted:
+
         raise HTTPException(
             status_code=404,
             detail="Conversation not found.",

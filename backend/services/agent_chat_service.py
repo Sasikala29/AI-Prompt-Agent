@@ -1,9 +1,12 @@
+# backend/services/agent_chat_service.py
+
 from sqlalchemy.orm import Session
 
 from backend.prompts.engine import (
     PromptEngine,
     PromptExample,
     PromptRequest,
+    PromptTechnique,
 )
 from backend.repositories.conversation_repository import ConversationRepository
 from backend.schemas.agent import (
@@ -62,7 +65,32 @@ class AgentChatService:
             response_format=request.response_format,
         )
 
+        # ---------------------------------------------------------
+        # Parse examples received from frontend
+        # ---------------------------------------------------------
+
         examples = self._parse_examples(request.examples)
+
+        # ---------------------------------------------------------
+        # Automatically provide examples for one-shot/few-shot
+        # when frontend does not send them.
+        # ---------------------------------------------------------
+
+        if request.technique == PromptTechnique.ONE_SHOT:
+            if len(examples) == 0:
+                examples = self._default_one_shot_example(
+                    request.message
+                )
+
+        elif request.technique == PromptTechnique.FEW_SHOT:
+            if len(examples) < 2:
+                examples = self._default_few_shot_examples(
+                    request.message
+                )
+
+        # ---------------------------------------------------------
+        # Build prompt request
+        # ---------------------------------------------------------
 
         prompt_request = PromptRequest(
             task=request.message,
@@ -74,11 +102,19 @@ class AgentChatService:
             examples=examples,
         )
 
+        # ---------------------------------------------------------
+        # Generate technique-specific prompt
+        # ---------------------------------------------------------
+
         generated_prompt = self.prompt_engine.generate(
             prompt_request
         )
 
         agent_message = generated_prompt.prompt
+
+        # ---------------------------------------------------------
+        # Add previous conversation history
+        # ---------------------------------------------------------
 
         if previous_messages:
             history = "\n".join(
@@ -93,6 +129,10 @@ class AgentChatService:
                 f"{generated_prompt.prompt}"
             )
 
+        # ---------------------------------------------------------
+        # Execute LLM
+        # ---------------------------------------------------------
+
         result = await self.agent_service.run(
             message=agent_message,
             model=request.model,
@@ -101,6 +141,10 @@ class AgentChatService:
             max_tokens=request.max_tokens,
             response_format=request.response_format,
         )
+
+        # ---------------------------------------------------------
+        # Save assistant response
+        # ---------------------------------------------------------
 
         assistant_message = self.repository.add_message(
             conversation=conversation,
@@ -123,6 +167,10 @@ class AgentChatService:
             model=result.model,
         )
 
+    # =============================================================
+    # EXAMPLE PARSER
+    # =============================================================
+
     @staticmethod
     def _parse_examples(
         examples: str | None,
@@ -131,26 +179,37 @@ class AgentChatService:
         if not examples or not examples.strip():
             return []
 
-        parsed_examples = []
+        parsed_examples: list[PromptExample] = []
 
-        for block in examples.split("\n\n"):
+        # Normalize Windows line endings
+        text = examples.replace("\r\n", "\n").strip()
+
+        # Split examples by blank lines
+        blocks = text.split("\n\n")
+
+        for block in blocks:
+
             lines = block.strip().splitlines()
 
             input_text = None
             output_text = None
 
             for line in lines:
-                if line.lower().startswith("input:"):
-                    input_text = line.split(
+
+                stripped = line.strip()
+
+                if stripped.lower().startswith("input:"):
+                    input_text = stripped.split(
                         ":", 1
                     )[1].strip()
 
-                elif line.lower().startswith("output:"):
-                    output_text = line.split(
+                elif stripped.lower().startswith("output:"):
+                    output_text = stripped.split(
                         ":", 1
                     )[1].strip()
 
             if input_text and output_text:
+
                 parsed_examples.append(
                     PromptExample(
                         input=input_text,
@@ -160,11 +219,73 @@ class AgentChatService:
 
         return parsed_examples
 
+    # =============================================================
+    # DEFAULT ONE-SHOT EXAMPLE
+    # =============================================================
+
+    @staticmethod
+    def _default_one_shot_example(
+        task: str,
+    ) -> list[PromptExample]:
+        """
+        Provides one generic example when the user selects
+        One-shot prompting but does not provide an example.
+        """
+
+        return [
+            PromptExample(
+                input="Explain temperature in LLMs.",
+                output=(
+                    "Temperature controls the randomness of an LLM. "
+                    "Lower values produce more predictable responses, "
+                    "while higher values produce more varied responses."
+                ),
+            )
+        ]
+
+    # =============================================================
+    # DEFAULT FEW-SHOT EXAMPLES
+    # =============================================================
+
+    @staticmethod
+    def _default_few_shot_examples(
+        task: str,
+    ) -> list[PromptExample]:
+        """
+        Provides multiple examples when the user selects
+        Few-shot prompting but does not provide examples.
+        """
+
+        return [
+            PromptExample(
+                input="What does temperature control in an LLM?",
+                output=(
+                    "Temperature controls the randomness of the "
+                    "model's responses."
+                ),
+            ),
+            PromptExample(
+                input="What does top-p control in an LLM?",
+                output=(
+                    "Top-p controls the range of token probabilities "
+                    "considered during generation."
+                ),
+            ),
+        ]
+
+    # =============================================================
+    # CONVERSATION TITLE
+    # =============================================================
+
     @staticmethod
     def _create_title(message: str) -> str:
-        title = " ".join(message.strip().split())
+
+        title = " ".join(
+            message.strip().split()
+        )
 
         if len(title) > 60:
             return f"{title[:57]}..."
 
         return title
+
